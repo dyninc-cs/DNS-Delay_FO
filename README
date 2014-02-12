@@ -33,13 +33,13 @@ ________________________________________________________________________________
 
 About:
 
-This script acts to monitor and instance of Dyn Managed DNS Active Failover (AF) and provide additional buffering prior to failover occurring.  To do so it requires two nodes to exist under the instance of AF called pri and back.  For example, if FO exists on the hostname test.dyn.com then a hostname pri.test.dyn.com with the primary endpoint record and back.test.dyn.com with the failover endpoint should both exist.
+This script acts to monitor an instance of Dyn Managed DNS Active Failover (AF) and provide additional buffering prior to failover occurring.  To do so it requires two nodes to exist under the instance of AF called pri and back.  For example, if FO exists on the hostname test.dyn.com then a hostname pri.test.dyn.com with the primary endpoint record and back.test.dyn.com with the failover endpoint should both exist.
 
 The script will delay any failover for at least the defined delay period.  Additional delay may be added up to 1x the monitoring interval and 1x the TTL of the service due to environmental causes.
 
 Credentials:
 
-This service is managed through the Dyn Managed DNS API.  To access the API the script requires your platform credentials.  The credentials are read out of a configuration file in the same directory name config.cfg in the format:
+This service is managed through the Dyn Managed DNS API.  To access the API, the script requires your platform credentials.  The credentials are read out of a configuration file in the same directory named config.cfg in the format:
 
 [login]
 un = user_name
@@ -83,4 +83,4 @@ JSON
 
 OS:
 
-This script was intentionally designed for compatibility with the Windows Server operating environment and has been tested with ActiveState perl as well as Strawberry perl.  A prepackaged executable version for the Windows Server environment is included with this repository.  
+This script was intentionally designed for compatibility with the Windows Server operating environment and has been tested with ActiveState Perl as well as Strawberry Perl.  A prepackaged executable version for the Windows Server environment is included with this repository.  
