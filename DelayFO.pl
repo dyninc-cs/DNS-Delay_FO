@@ -11,10 +11,11 @@ use sigtrap 'handler' => \&close_shop, qw(normal-signals);
 
 #Import DynECT handler
 use FindBin;
-use lib $FindBin::Bin;  # use the parent directory
+# use the parent directory
+use lib $FindBin::Bin;
 require DynECT::DNS_REST;
 
-#contants
+#constants
 my $FO_URI = '/REST/Failover/';
 
 #options variables
@@ -42,7 +43,7 @@ unless ( $opt_host =~ /$opt_zone/ ) {
 	die "Hostname and zone do not match.  Please see -help for more information\n"
 }
 
-# Open the config
+#open the config file
 my $cfg = Config::Tiny->read( 'config.cfg' );
 
 #dump config variables into hash
@@ -81,30 +82,30 @@ $dynect->login( $apicn, $apiun, $apipw)
 
 #create local scope to trash test variables outside of loop
 {
-	#test existance of zone and FO on hostname
+	#test existence of zone and Active Failover on hostname
 	$dynect->request( "/REST/Zone/$opt_zone", 'GET' ) 
-		or die "Could not retireve information for $opt_zone.  Please check configuration of that zone name\n";
+		or die "Could not retrieve information for $opt_zone.  Please check configuration of that zone name\n";
 	my %api_test_param = ( detail => 'N' );
 	$dynect->request( $FO_URI . "$opt_zone/$opt_host" , 'GET', \%api_test_param ) 
-		or die "Could not find Active Failover a $opt_host.  Please check configuration at that hostname\n";
+		or die "Could not find Active Failover for $opt_host.  Please check configuration of that hostname\n";
 }
 
 #logout of test session
 $dynect->logout;
 
-#check for log directory and if not create it
+#create log directory if it does not already exist
 mkdir "$FindBin::Bin/logs" unless ( -d "$FindBin::Bin/logs" );
 
 #open logfile
 my $fh_log;
-#create local scope to create temporary variabl
+#create local scope to create temporary variable
 {
 	my $temp = $opt_host;
 	$temp =~ s/\./_/g;
 	open ( $fh_log, '>>', "$FindBin::Bin/logs/log_$temp.log") 
 		or die "Unable to open file at $FindBin::Bin/logs/log_$temp.log\n";
 }
-#Write startup to log
+#write startup to log
 if ( $opt_pri ) {
 	print $fh_log time . " - Startup in primary mode and monitoring active failover at $opt_host";
 }
@@ -131,14 +132,14 @@ while ( 1 ) {
 	sleep $loop_sleep;
 
 	#API login
-	$dynect->login( $apicn, $apiun, $apipw) or do {
+	$dynect->login( $apicn, $apiun, $apipw ) or do {
 		#if we can't login, go to sleep for a minute
 		$loop_sleep = 60;
 		print $fh_log time . " - Unable to login to DynECT API.  Sleeping for 60 seconds\n";
 		next; 
 	};
 
-	#check FO
+	#check Active Failover
 	my %api_param = ( detail => 'N' );
 	$dynect->request( $FO_URI . "$opt_zone/$opt_host" , 'GET', \%api_param ) or do {
 		$loop_sleep = 30;
@@ -168,7 +169,7 @@ while ( 1 ) {
 	print $fh_log time . " - Current interval set to $interval.  New sleep time calculated to $loop_sleep\n" if $opt_debug;
 
 	if ( $dynect->response->{'data'}{'status'} eq 'failover' ) {
-		#logic if the FO is currently in failove state
+		#logic if the Active Failover is currently in failover state
 		print $fh_log time . " - Failover at $opt_host currently detected to be in failover mode\n" if $opt_debug;
 		#if the CNAME is already in failure, loop again
 		if ( $dynect->response->{'data'}{'failover_data'} eq ( 'back.' . $opt_host  ) ) {
@@ -241,7 +242,7 @@ while ( 1 ) {
 		}	
 	}	
 	elsif ( $dynect->response->{'data'}{'status'} eq 'ok' ) {
-		#logic if the FO is in 'ok' state
+		#logic if the FO is in 'OK' state
 		#if the CNAME is already in primary, loop again
 		print $fh_log time . " - Failover at $opt_host currently detected to be in primary mode\n" if $opt_debug;
 		if ( $dynect->response->{'data'}{'failover_data'} eq ( 'pri.' . $opt_host  ) ) {
@@ -294,7 +295,7 @@ while ( 1 ) {
 				},
 				contact_nickname => $dynect->response->{'data'}{'contact_nickname'},
 			);
-			#change FO CNAME back to ok state
+			#change failover CNAME back to OK state
 			$dynect->request( $FO_URI . "$opt_zone/$opt_host" , 'PUT', \%api_param ) or do {
 				$loop_sleep = 30;
 				print $fh_log time . " - Unable to complete failover record recovery change.  Retry in $loop_sleep\n";
@@ -305,7 +306,7 @@ while ( 1 ) {
 		}
 	}
 	else {
-		print $fh_log time . "Activce failover status unkown.  Will retry in $loop_sleep\n" if $opt_debug;
+		print $fh_log time . "Active Failover status unknon.  Will retry in $loop_sleep\n" if $opt_debug;
 	}	
 	$dynect->logout;
 }
