@@ -1,9 +1,9 @@
 #!/usr/bin/env perl
 
+package DynECT::DNS_REST;
+
 $VERSION = "1.01";
 $VERSION = eval $VERSION;
-
-package DynECT::DNS_REST;
 
 use strict;
 use warnings;

@@ -33,13 +33,21 @@ ________________________________________________________________________________
 
 About:
 
-This script acts to monitor an instance of Dyn Managed DNS Active Failover (AF) and provide additional buffering prior to failover occurring.  To do so it requires two nodes to exist under the instance of AF called pri and back.  For example, if FO exists on the hostname test.dyn.com then a hostname pri.test.dyn.com with the primary endpoint record and back.test.dyn.com with the failover endpoint should both exist.
+This script acts to monitor an instance of Dyn Managed DNS Active Failover (AF) 
+and provide additional buffering prior to failover occurring.  To do so it 
+requires two nodes to exist under the instance of AF called pri and back.  For 
+example, if FO exists on the hostname test.dyn.com then a hostname 
+pri.test.dyn.com with the primary endpoint record and back.test.dyn.com with 
+the failover endpoint should both exist.
 
-The script will delay any failover for at least the defined delay period.  Additional delay may be added up to 1x the monitoring interval and 1x the TTL of the service due to environmental causes.
+The script will delay any failover for at least the defined delay period.  
+Additional delay may be added up to 1x the monitoring interval and 1x the TTL of the service due to environmental causes.
 
 Credentials:
 
-This service is managed through the Dyn Managed DNS API.  To access the API, the script requires your platform credentials.  The credentials are read out of a configuration file in the same directory named config.cfg in the format:
+This service is managed through the Dyn Managed DNS API.  To access the API, 
+the script requires your platform credentials.  The credentials are read out of 
+a configuration file in the same directory named config.cfg in the format:
 
 [login]
 un = user_name
@@ -52,12 +60,14 @@ The script has several options which are as follows:
 
 Options:
 
--zone             REQUIRED: Root zone which contains active failover service to monitor
+-zone             REQUIRED: Root zone which contains active failover service to 
+                  monitor
 -host             REQUIRED: Hostname with active failover service to monitor
 -delay            REQUIRED: Number of seconds to delay failover
 -primary          Set script to run in primary site mode, altering some timings
 -backup           Set script to run in backup site mode, altering some timings
--debug            Log additional debug information to log file.  Log files are written to ./logs/log_[hostname].log
+-debug            Log additional debug information to log file.  Log files are 
+                  written to ./logs/log_[hostname].log
 -help             Print this help information and exit
 
 
@@ -65,11 +75,15 @@ Usage:
 
 	perl DelayFO.pl -zone dyn.com -host test.dyn.com -delay 120 -primary
 
-Runs the Delay Failover monitor script in primary site mode watching the instance at test.dyn.com and delaying any failover event for at least 120 seconds.
+Runs the Delay Failover monitor script in primary site mode watching the 
+instance at test.dyn.com and delaying any failover event for at least 120 
+seconds.
 
 	perl DelayFO.pl -zone example.com -host fail.example.com -delay 300 -backup
 
-Runs the Delay Failover monitor script in backup site mode watching the instance at fail.example.com and delaying any failover event for at least 300 seconds.
+Runs the Delay Failover monitor script in backup site mode watching the 
+instance at fail.example.com and delaying any failover event for at least 300 
+seconds.
 
 Prerequisites: 
 
