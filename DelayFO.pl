@@ -31,44 +31,13 @@ GetOptions(
 	'help'		=>	\$opt_help,
 );
 
-#help text
-if ( $opt_help ) {
-	print "\tOptions:\n\n\t";
-	printf("%-18s", '-zone');
-	print "REQUIRED: Root zone which contains active failover service\n\t\t\t   to monitor\n\t";
-	printf("%-18s", '-host');
-	print "REQUIRED: Hostname with active failover service to monitor\n\t";
-	printf("%-18s", '-delay');
-	print "REQUIRED: Number of seconds to delay failover\n\t";
-	printf("%-18s", '-primary');
-	print "Set script to run in primary site mode, altering some timings\n\t";
-	printf("%-18s", '-backup');
-	print "Set script to run in backup site mode, altering some timings\n\t";
-	printf("%-18s", '-debug');
-	print "Log additional debug information to ./logs/bebug.log\n\t";
-	printf("%-18s", '-help');
-	print "Print this help information and exit\n";
-	exit;
-}
+#check run time options
+check_opt() or exit;
 
-#check options for validity
-unless ( $opt_host && $opt_zone ) {
-	print "Options -host and -zone are required.  Please see -help for more information\n";
-	exit;
-}
-
-unless ( $opt_pri xor $opt_back ) {
-	print "Either option -primary or -backup is required.  Please see -help for more information\n";
-	exit;
-}
-
-unless ( $opt_delay ) {
-	print "A delay defined with -delay is required.  Please see -help for more information\n";
-	exit;
-}
-
+#very simple sanitization of zone and hostname
 $opt_zone = lc ( $opt_zone );
 $opt_host = lc ( $opt_host );
+
 unless ( $opt_host =~ /$opt_zone/ ) {
 	die "Hostname and zone do not match.  Please see -help for more information\n"
 }
@@ -339,6 +308,47 @@ while ( 1 ) {
 		print $fh_log time . "Activce failover status unkown.  Will retry in $loop_sleep\n" if $opt_debug;
 	}	
 	$dynect->logout;
+}
+
+#check options from use
+sub check_opt {
+	#help text
+	if ( $opt_help ) {
+		print "\tOptions:\n\n\t";
+		printf("%-18s", '-zone');
+		print "REQUIRED: Root zone which contains active failover service\n\t\t\t   to monitor\n\t";
+		printf("%-18s", '-host');
+		print "REQUIRED: Hostname with active failover service to monitor\n\t";
+		printf("%-18s", '-delay');
+		print "REQUIRED: Number of seconds to delay failover\n\t";
+		printf("%-18s", '-primary');
+		print "Set script to run in primary site mode, altering some timings\n\t";
+		printf("%-18s", '-backup');
+		print "Set script to run in backup site mode, altering some timings\n\t";
+		printf("%-18s", '-debug');
+		print "Log additional debug information to ./logs/bebug.log\n\t";
+		printf("%-18s", '-help');
+		print "Print this help information and exit\n";
+		return 0;
+	}
+
+	#check options for validity
+	unless ( $opt_host && $opt_zone ) {
+		print "Options -host and -zone are required.  Please see -help for more information\n";
+		return 0;
+	}
+
+	unless ( $opt_pri xor $opt_back ) {
+		print "Either option -primary or -backup is required.  Please see -help for more information\n";
+		return 0;
+	}
+
+	unless ( $opt_delay ) {
+		print "A delay defined with -delay is required.  Please see -help for more information\n";
+		return 0;
+	}
+
+return 1;
 }
 
 #Interupt handler
