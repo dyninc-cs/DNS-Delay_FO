@@ -22,7 +22,7 @@ my $FO_URI = '/REST/Failover/';
 my ( $opt_host , $opt_zone , $opt_pri , $opt_back , $opt_delay , $opt_debug, $opt_help );
 
 #grab CLI options
-GetOptions( 
+GetOptions(
 	'host=s'	=>	\$opt_host,
 	'zone=s'	=>	\$opt_zone,
 	'primary'	=>	\$opt_pri,
@@ -77,16 +77,16 @@ my $apipw = $configopt{'pw'} or do {
 my $dynect = DynECT::DNS_REST->new;
 
 #Test login credentials
-$dynect->login( $apicn, $apiun, $apipw) 
+$dynect->login( $apicn, $apiun, $apipw)
 	or die "Unable to log in to the DynECT API.  Please check your login credentials and internet availability\n";
 
 #create local scope to trash test variables outside of loop
 {
 	#test existence of zone and Active Failover on hostname
-	$dynect->request( "/REST/Zone/$opt_zone", 'GET' ) 
+	$dynect->request( "/REST/Zone/$opt_zone", 'GET' )
 		or die "Could not retrieve information for $opt_zone.  Please check configuration of that zone name\n";
 	my %api_test_param = ( detail => 'N' );
-	$dynect->request( $FO_URI . "$opt_zone/$opt_host" , 'GET', \%api_test_param ) 
+	$dynect->request( $FO_URI . "$opt_zone/$opt_host" , 'GET', \%api_test_param )
 		or die "Could not find Active Failover for $opt_host.  Please check configuration of that hostname\n";
 }
 
@@ -102,7 +102,7 @@ my $fh_log;
 {
 	my $temp = $opt_host;
 	$temp =~ s/\./_/g;
-	open ( $fh_log, '>>', "$FindBin::Bin/logs/log_$temp.log") 
+	open ( $fh_log, '>>', "$FindBin::Bin/logs/log_$temp.log")
 		or die "Unable to open file at $FindBin::Bin/logs/log_$temp.log\n";
 }
 #write startup to log
@@ -117,7 +117,7 @@ print $fh_log "\n";
 
 #initiate loop
 my $loop_sleep = 10;
-while ( 1 ) { 
+while ( 1 ) {
 	print $fh_log time . " - Loop start, sleeping for $loop_sleep seconds\n" if $opt_debug;
 
 	#flush the print buffers once every loop
@@ -136,7 +136,7 @@ while ( 1 ) {
 		#if we can't login, go to sleep for a minute
 		$loop_sleep = 60;
 		print $fh_log time . " - Unable to login to DynECT API.  Sleeping for 60 seconds\n";
-		next; 
+		next;
 	};
 
 	#check Active Failover
@@ -177,20 +177,20 @@ while ( 1 ) {
 			$dynect->logout;
 			next;
 		}
-		else { 
+		else {
 			#logout if given long delay
 			$dynect->logout if ( $opt_delay > 120 );
 			#wait for the delay to expire
 			my $wait = $opt_delay;
 			#preference the backup site to do the work
 			$wait = $wait + 20 if $opt_pri;
-			print $fh_log time . " - Possible failover event detected.  Entering delay mode for $opt_delay seconds\n";
+			print $fh_log time . " - Possible recovery event detected.  Entering delay mode for $opt_delay seconds\n";
 			sleep $opt_delay if ($opt_delay > 0);
 			#log back in if given long delay
 			if ( $opt_delay > 120 ) {
-				$dynect->login or do {
+					$dynect->login( $apicn, $apiun, $apipw) or do {
 					$loop_sleep = 30;
-					print $fh_log time . "Failed to log in to API during possible failover event.  Will rety in $loop_sleep seconds\n";
+					print $fh_log time . "Failed to log in to API during possible recovery event.  Will rety in $loop_sleep seconds\n";
 					next;
 				}
 			}
@@ -202,7 +202,7 @@ while ( 1 ) {
 			};
 			#loop if it has recovered
 			if ( $dynect->response->{'data'}{'status'} ne 'failover' ) {
-				print $fh_log time . " - Leaving delay mode. Service has recovered, no action taken.\n"; 
+				print $fh_log time . " - Leaving delay mode. Service has recovered, no action taken.\n";
 				$dynect->logout;
 				next;
 			};
@@ -214,7 +214,7 @@ while ( 1 ) {
 				next;
 			}
 
-			print $fh_log time . " - Leaving delay mode.  Service still in failover, processing change\n" if $opt_debug;
+			print $fh_log time . " - Leaving delay mode.  Service still in recovery, processing change\n" if $opt_debug;
 			%api_param = (
 				address => $dynect->response->{'data'}{'address'},
 				failover_mode => 'cname',
@@ -239,8 +239,8 @@ while ( 1 ) {
 			};
 
 			print $fh_log time . " - Record change complete\n";
-		}	
-	}	
+		}
+	}
 	elsif ( $dynect->response->{'data'}{'status'} eq 'ok' ) {
 		#logic if the FO is in 'OK' state
 		#if the CNAME is already in primary, loop again
@@ -250,10 +250,10 @@ while ( 1 ) {
 			$dynect->logout;
 			next;
 		}
-		else { 
+		else {
 			print $fh_log time . " - Failover service recovery detected\n";
 			#preference the primary site to do the work
-			if ( $opt_back ) { 
+			if ( $opt_back ) {
 				print $fh_log time . " - Entering 20 second delay mode prior to recovery for backup site mode\n" if $opt_debug;
 				sleep 20;
 				#check if still down
@@ -307,7 +307,7 @@ while ( 1 ) {
 	}
 	else {
 		print $fh_log time . "Active Failover status unknon.  Will retry in $loop_sleep\n" if $opt_debug;
-	}	
+	}
 	$dynect->logout;
 }
 
@@ -360,4 +360,3 @@ sub close_shop {
 	$dynect->logout;
 	exit;
 }
-
